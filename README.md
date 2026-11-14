@@ -1,6 +1,6 @@
 # Library Management System
 
-A Prisma and PostgreSQL data layer for a library book catalog.
+A NestJS, Prisma, and PostgreSQL backend for a library book catalog, including catalog CRUD, JWT authentication, and librarian-only book management.
 
 ## Requirements implemented
 
@@ -11,6 +11,11 @@ A Prisma and PostgreSQL data layer for a library book catalog.
 - Seed data containing 4 genres and 16 books distributed evenly across those genres.
 - NestJS-compatible `PrismaService` that connects during `onModuleInit`.
 - Safe `api/.env.example` containing a `DATABASE_URL` placeholder.
+- Full CRUD endpoints for genres and books.
+- DTO validation with `class-validator` and a global `ValidationPipe`.
+- Patron registration and login with bcrypt password hashing and JWTs.
+- `RolesGuard` protection for book create, update, and delete routes.
+- Postman collection covering every endpoint in `docs/postman_collection.json`.
 
 ## Project structure
 
@@ -19,9 +24,15 @@ api/
 ├── prisma/
 │   ├── schema.prisma
 │   └── seed.ts
-├── src/prisma/prisma.service.ts
+├── src/
+│   ├── auth/
+│   ├── books/
+│   ├── genres/
+│   ├── prisma/
+│   └── users/
 ├── .env.example
 └── package.json
+docs/postman_collection.json
 ```
 
 ## Setup
@@ -39,10 +50,12 @@ api/
    cp .env.example .env
    ```
 
-3. Replace the placeholder in `.env` with the connection string for the hosted PostgreSQL database:
+3. Replace the database placeholder and set a strong JWT secret:
 
    ```env
    DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE_NAME?schema=public"
+   JWT_SECRET="a-long-random-secret"
+   JWT_EXPIRES_IN="1h"
    ```
 
 4. Format and validate the schema:
@@ -70,6 +83,50 @@ api/
    ```bash
    npx prisma studio
    ```
+
+## API endpoints
+
+### Genres
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `POST` | `/genres` | Create a genre |
+| `GET` | `/genres` | List genres with book counts |
+| `GET` | `/genres/:id` | Get one genre and its books |
+| `PATCH` | `/genres/:id` | Update a genre |
+| `DELETE` | `/genres/:id` | Delete a genre without books |
+
+### Books
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `POST` | `/books` | Create a book; librarian JWT required |
+| `GET` | `/books` | Filter, search, and paginate books |
+| `GET` | `/books/:id` | Get one book |
+| `PATCH` | `/books/:id` | Update a book; librarian JWT required |
+| `DELETE` | `/books/:id` | Delete a book; librarian JWT required |
+
+`GET /books` accepts `genreId`, `search`, `page`, and `limit`. Search matches both title and author.
+
+### Authentication and profile
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `POST` | `/auth/register` | Register a patron and receive a JWT |
+| `POST` | `/auth/login` | Verify credentials and receive a JWT |
+| `GET` | `/users/profile` | Return the authenticated JWT user |
+
+Send protected requests with:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+The `docs/postman_collection.json` file contains a request for every route and variables for `baseUrl`, `token`, `genreId`, and `bookId`.
+
+## Authorization model
+
+Registration always creates a `PATRON`. Only users whose JWT has the `LIBRARIAN` role may create, update, or delete books. Missing or invalid tokens return `401 Unauthorized`; valid patrons attempting librarian-only routes receive `403 Forbidden`.
 
 ## Schema Decisions
 

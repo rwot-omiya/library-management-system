@@ -13,12 +13,13 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  role      Role     @default(PATRON)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(PATRON)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("users")
 }
@@ -40,6 +41,7 @@ model Book {
   title       String
   author      String
   isbn        String    @unique
+  totalCopies Int       @default(1)
   publishedAt DateTime?
   available   Boolean   @default(true)
   genreId     Int
@@ -49,5 +51,7 @@ model Book {
   genre Genre @relation(fields: [genreId], references: [id], onDelete: Restrict)
 
   @@index([genreId])
+  @@index([title])
+  @@index([author])
   @@map("books")
 }
