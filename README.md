@@ -2,6 +2,8 @@
 
 A NestJS, Prisma, and PostgreSQL backend for a library book catalog, including catalog CRUD, JWT authentication, and librarian-only book management.
 
+The repository also includes a Vite React client for patron-facing catalog browsing, debounced search, genre filtering, and book details.
+
 ## Requirements implemented
 
 - `Role` enum with `PATRON` and `LIBRARIAN` values.
@@ -16,6 +18,7 @@ A NestJS, Prisma, and PostgreSQL backend for a library book catalog, including c
 - Patron registration and login with bcrypt password hashing and JWTs.
 - `RolesGuard` protection for book create, update, and delete routes.
 - Postman collection covering every endpoint in `docs/postman_collection.json`.
+- Responsive React catalog client with skeleton loading, error, and empty states.
 
 ## Project structure
 
@@ -33,6 +36,11 @@ api/
 ├── .env.example
 └── package.json
 docs/postman_collection.json
+client/
+├── src/components/
+├── src/pages/
+├── src/App.jsx
+└── .env
 ```
 
 ## Setup
@@ -83,6 +91,23 @@ docs/postman_collection.json
    ```bash
    npx prisma studio
    ```
+
+### Frontend
+
+From the repository root:
+
+```bash
+npm install
+npm run dev --workspace client
+```
+
+The client reads the backend origin from `client/.env`:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+The catalog is available at `/`, and selecting a book opens `/books/:id`.
 
 ## API endpoints
 

@@ -1,0 +1,1 @@
+{"routes":[{"path":"/","title":"Library Catalog"},{"path":"/books/:id","title":"Book Details"}]}
